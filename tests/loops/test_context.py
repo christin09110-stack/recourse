@@ -41,10 +41,10 @@ def test_reading_the_case_file_is_never_escalated():
         assert isinstance(policy.before_tool_call(tool_event(name, denial_id="den-16")), Proceed)
 
 
-def test_a_draft_against_a_closing_window_raises_the_deadline_duty():
+def test_a_draft_against_a_closing_window_is_not_stopped():
     """Day 150 of 180 on the clinical appeal. The rule fires *because* it must act."""
     policy = _watch_policy()
-    assert "deadline_at_risk" in _rules(policy, tool_event("draft_letter_body",
+    assert "deadline_at_risk" not in _rules(policy, tool_event("draft_letter_body",
                                                            denial_id="den-50"))
 
 
@@ -75,10 +75,10 @@ def test_the_policy_is_never_asked_to_approve_an_uncited_clinical_sentence():
     assert context is not None and context.uncited_clinical == ()
 
 
-def test_a_silent_insurer_is_raised_even_when_the_claimants_own_clock_is_fine():
+def test_a_silent_insurer_does_not_stop_the_run_either():
     """19 days past its own 60. Nobody but the claimant is counting that one."""
     policy = _press_policy()
-    assert "insurer_overdue" in _rules(policy, tool_event("notify_person",
+    assert "insurer_overdue" not in _rules(policy, tool_event("notify_person",
                                                           appeal_id="appeal-16"))
 
 

@@ -33,8 +33,13 @@ def test_filing_is_never_the_agents_at_any_level(level):
 @pytest.mark.parametrize("level", LEVELS)
 @pytest.mark.parametrize("risk", [DeadlineRisk.APPROACHING, DeadlineRisk.CRITICAL,
                                   DeadlineRisk.MISSED])
-def test_a_deadline_at_risk_is_raised_at_every_level(level, risk):
-    assert "deadline_at_risk" in _rules(_ctx(risk=risk, days_remaining=12), level)
+def test_a_closing_deadline_does_not_stop_the_agent_working(level, risk):
+    """The duty to speak lives in `policy.sweep`, which raises it on a schedule at
+    every level. Judged here it became a rule against *acting*, and on the first
+    live run it stopped the agent drafting a letter for the one appeal whose
+    insurer was already nineteen days late. The moment a window is closing is the
+    moment to want the draft written."""
+    assert _rules(_ctx(risk=risk, days_remaining=12), level) == set()
 
 
 def test_the_three_non_negotiables_are_exactly_what_the_rules_declare():
@@ -44,10 +49,17 @@ def test_the_three_non_negotiables_are_exactly_what_the_rules_declare():
 
 
 def test_a_missed_deadline_says_the_merits_stopped_mattering():
-    """A person reading this should understand the consequence without a rule code."""
-    hit = next(h for h in evaluate(_ctx(risk=DeadlineRisk.MISSED),
-                                   AutonomyLevel.TRUSTED) if h.rule == "deadline_at_risk")
-    assert "merits" in hit.detail
+    """A person reading this should understand the consequence without a rule code.
+    The sentence lives on the sweep's finding, which is what a person is shown."""
+    from recourse.domain.appeal import Appeal
+    from recourse.domain.types import AppealStage
+    from recourse.policy.finding import Finding
+
+    appeal = Appeal.opened(appeal_id="a", denial_id="d", plan_id="p",
+                           stage=AppealStage.INTERNAL_1)
+    missed = Finding(appeal=appeal, deadlines=None, risk=DeadlineRisk.MISSED,
+                     days_remaining=-3, insurer_overdue=False)
+    assert "merits" in missed.sentence
 
 
 def test_even_conservative_warns_early_about_a_closing_window():
@@ -56,8 +68,9 @@ def test_even_conservative_warns_early_about_a_closing_window():
     assert THRESHOLDS[AutonomyLevel.CONSERVATIVE].warn_days >= 30
 
 
-def test_an_overdue_insurer_is_reported_even_when_nothing_else_is_wrong():
-    assert "insurer_overdue" in _rules(_ctx(insurer_overdue=True), AutonomyLevel.TRUSTED)
+def test_a_late_insurer_does_not_stop_the_agent_either():
+    """Being owed an answer is a fact to surface, not a reason to refuse to work."""
+    assert _rules(_ctx(insurer_overdue=True), AutonomyLevel.TRUSTED) == set()
 
 
 def test_a_records_request_needs_a_person_below_trusted():
@@ -76,7 +89,7 @@ def test_conservative_does_not_draft_unprompted_and_balanced_does():
 
 def test_an_unreadable_world_stops_everything_and_nothing_else_is_reported():
     """Unknown is never benign, and it is not mixed in with ordinary findings."""
-    hits = evaluate(_ctx(assessable=False, risk=DeadlineRisk.CRITICAL), AutonomyLevel.TRUSTED)
+    hits = evaluate(_ctx(assessable=False), AutonomyLevel.TRUSTED)
     assert [h.rule for h in hits] == ["unassessable"]
 
 

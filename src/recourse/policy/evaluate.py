@@ -6,22 +6,8 @@ declaration in `rules.py` rather than as branches buried in a function.
 
 from __future__ import annotations
 
-from recourse.domain.types import AutonomyLevel, DeadlineRisk
+from recourse.domain.types import AutonomyLevel
 from recourse.policy.rules import THRESHOLDS, ActionContext, RuleHit
-
-#: Risks that mean the clock is close enough that a person must be told now.
-_AT_RISK = (DeadlineRisk.APPROACHING, DeadlineRisk.CRITICAL, DeadlineRisk.MISSED)
-
-
-def _deadline_detail(context: ActionContext) -> str:
-    if context.risk is DeadlineRisk.MISSED:
-        return ("The window to appeal has closed. Nothing about the merits of this "
-                "claim matters now, and that is why it was never allowed to pass "
-                "quietly.")
-    left = context.days_remaining
-    counted = f"{left} days remain" if left is not None else "the window is closing"
-    return f"{counted} to appeal, and nobody else in this process is counting them."
-
 
 def evaluate(context: ActionContext, level: AutonomyLevel) -> list[RuleHit]:
     """Every rule this action trips at this autonomy level."""
@@ -47,16 +33,14 @@ def evaluate(context: ActionContext, level: AutonomyLevel) -> list[RuleHit]:
             "Filing an appeal is a legal act in the claimant's name. Recourse "
             "prepares it; a person sends it.",
         ))
-    if context.risk in _AT_RISK:
-        hits.append(RuleHit("deadline_at_risk", _deadline_detail(context)))
-    elif context.insurer_overdue:
-        # Not at every level of urgency, but always worth saying: it is the one
-        # clock in this process running against the plan rather than the claimant.
-        hits.append(RuleHit(
-            "insurer_overdue",
-            "The plan is past its own deadline to answer this appeal.",
-        ))
-
+    # A closing deadline and a late insurer are NOT reasons to stop a tool call.
+    # They are reasons to speak, and `policy.sweep` speaks: it raises them on a
+    # schedule, at every autonomy level, whether or not the agent is doing anything.
+    #
+    # Blocking here was backwards and it showed on the first live run. Drafting a
+    # letter for the one appeal whose insurer was nineteen days late got held for a
+    # human, because being late was reported as a rule against acting. The moment a
+    # window is closing is the moment to want the draft written, not to stop it.
     if context.reaches_a_third_party and not limits.may_request_records:
         hits.append(RuleHit(
             "records_request_needs_you",

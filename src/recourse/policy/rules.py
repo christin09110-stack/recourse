@@ -14,11 +14,16 @@ it is a false statement on an insurance document, made in the patient's name.
 exists to refuse anything that tries. Submitting is a legal act taken in someone
 else's name; the agent prepares and a person sends.
 
-`deadline_at_risk` — a **duty**. It fires because the agent must act, not because it
-must not. Everywhere else a guardrail stops the agent doing something; here silence
-is the failure, and an unanswered deadline escalation gets louder rather than going
-quiet. Fewer than 1% of denied claims are ever appealed, and the reason is not that
-people accept the decision. It is that nobody told them the clock was running.
+`deadline_at_risk` — a **duty**, and it is raised by `policy.sweep`, not by this
+module. It fires because the agent must act, not because it must not, and that
+distinction is load-bearing: judged here as a rule against acting, it stopped the
+agent drafting a letter for the one appeal whose insurer was already late. The
+moment a window is closing is the moment to want the draft written. So the sweep
+raises it on a schedule, at every level, whether or not the agent is doing anything,
+and an unanswered escalation gets louder rather than going quiet.
+
+Fewer than 1% of denied claims are ever appealed, and the reason is not that people
+accept the decision. It is that nobody told them the clock was running.
 """
 
 from __future__ import annotations
