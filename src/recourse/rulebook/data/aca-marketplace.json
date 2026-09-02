@@ -1,0 +1,90 @@
+{
+  "plan_type": "aca_marketplace",
+  "label": "ACA marketplace plan",
+  "in_scope": true,
+  "internal_levels": 1,
+  "source": "https://www.healthcare.gov/appeal-insurance-company-decision/internal-appeals/",
+  "time_to_appeal": {
+    "value": 180,
+    "unit": "days",
+    "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/internal-appeals/",
+    "note": "From the date of the denial notice. Missing this is the one irreversible failure in the domain: the merits stop mattering."
+  },
+  "initial_notice": {
+    "urgent": [
+      {
+        "value": 72,
+        "unit": "hours",
+        "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/internal-appeals/",
+        "note": "Urgent care case."
+      }
+    ],
+    "pre_service": [
+      {
+        "value": 15,
+        "unit": "days",
+        "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/internal-appeals/",
+        "note": "Prior authorisation for a service not yet received."
+      }
+    ],
+    "post_service": [
+      {
+        "value": 30,
+        "unit": "days",
+        "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/internal-appeals/",
+        "note": "Services already received."
+      }
+    ]
+  },
+  "decision_on_appeal": [
+    {
+      "urgent": [
+        {
+          "value": 72,
+          "unit": "hours",
+          "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/internal-appeals/"
+        }
+      ],
+      "pre_service": [
+        {
+          "value": 30,
+          "unit": "days",
+          "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/internal-appeals/"
+        }
+      ],
+      "post_service": [
+        {
+          "value": 60,
+          "unit": "days",
+          "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/internal-appeals/"
+        }
+      ]
+    }
+  ],
+  "external_review": {
+    "request_within": {
+      "value": 4,
+      "unit": "months",
+      "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/external-review/",
+      "note": "From the notice of the final internal denial."
+    },
+    "standard_decision": {
+      "value": 45,
+      "unit": "days",
+      "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/external-review/"
+    },
+    "expedited_decision": {
+      "value": 72,
+      "unit": "hours",
+      "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/external-review/"
+    }
+  },
+  "after_exhaustion": [
+    {
+      "stage": "external",
+      "condition": "always",
+      "citation": "https://www.healthcare.gov/appeal-insurance-company-decision/external-review/",
+      "note": "An independent reviewer, not the insurer. The decision binds the plan."
+    }
+  ]
+}

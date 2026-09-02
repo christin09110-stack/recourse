@@ -1,0 +1,131 @@
+{
+  "plan_type": "erisa_group_health",
+  "label": "ERISA group health plan",
+  "in_scope": true,
+  "internal_levels": 2,
+  "source": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+  "time_to_appeal": {
+    "value": 180,
+    "unit": "days",
+    "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+    "note": "29 CFR 2560.503-1(h)(3)(i): at least 180 days following receipt of the adverse benefit determination. A plan may allow longer, never less."
+  },
+  "initial_notice": {
+    "urgent": [
+      {
+        "value": 72,
+        "unit": "hours",
+        "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+        "note": "29 CFR 2560.503-1(f): urgent care claim."
+      }
+    ],
+    "pre_service": [
+      {
+        "value": 15,
+        "unit": "days",
+        "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+        "note": "29 CFR 2560.503-1(f): pre-service claim.",
+        "extension": {
+          "value": 15,
+          "unit": "days",
+          "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+          "note": "Extendable once, for matters beyond the plan's control, on notice before the first period runs out."
+        }
+      }
+    ],
+    "post_service": [
+      {
+        "value": 30,
+        "unit": "days",
+        "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+        "note": "29 CFR 2560.503-1(f): post-service claim.",
+        "extension": {
+          "value": 15,
+          "unit": "days",
+          "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+          "note": "Extendable once, on the same terms."
+        }
+      }
+    ]
+  },
+  "decision_on_appeal": [
+    {
+      "urgent": [
+        {
+          "value": 72,
+          "unit": "hours",
+          "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+          "note": "29 CFR 2560.503-1(i)(2), one mandatory level."
+        }
+      ],
+      "pre_service": [
+        {
+          "value": 30,
+          "unit": "days",
+          "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+          "note": "29 CFR 2560.503-1(i)(2), one mandatory level."
+        }
+      ],
+      "post_service": [
+        {
+          "value": 60,
+          "unit": "days",
+          "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+          "note": "29 CFR 2560.503-1(i)(2), one mandatory level."
+        }
+      ]
+    },
+    {
+      "urgent": [
+        {
+          "value": 72,
+          "unit": "hours",
+          "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+          "note": "29 CFR 2560.503-1(i)(2). The urgent care clock is stated flat and is not divided between levels, so this table carries one figure where the others carry two."
+        }
+      ],
+      "pre_service": [
+        {
+          "value": 15,
+          "unit": "days",
+          "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+          "note": "29 CFR 2560.503-1(i)(2), level one of two."
+        },
+        {
+          "value": 15,
+          "unit": "days",
+          "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+          "note": "Level two of two. Its clock starts when level one is answered, not before."
+        }
+      ],
+      "post_service": [
+        {
+          "value": 30,
+          "unit": "days",
+          "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+          "note": "29 CFR 2560.503-1(i)(2), level one of two."
+        },
+        {
+          "value": 30,
+          "unit": "days",
+          "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+          "note": "Level two of two. Its clock starts when level one is answered, not before."
+        }
+      ]
+    }
+  ],
+  "after_exhaustion": [
+    {
+      "stage": "external",
+      "condition": "non_grandfathered",
+      "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+      "note": "Non-grandfathered plans carry the federal external review right. This file ships no external-review clocks: they are not stated in 29 CFR 2560.503-1 and are not borrowed from the marketplace file."
+    },
+    {
+      "stage": "civil_action",
+      "condition": "grandfathered",
+      "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+      "note": "29 CFR 2560.503-1(c)(2): a plan may require up to two mandatory appeals before a civil action under ERISA section 502(a). Exhaustion of those levels is the precondition."
+    }
+  ]
+}

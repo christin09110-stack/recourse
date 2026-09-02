@@ -1,0 +1,13 @@
+{
+  "plan_type": "erisa_non_health",
+  "label": "ERISA non-health plan (disability, pension)",
+  "in_scope": false,
+  "out_of_scope_reason": "Recourse computes health-plan appeal clocks and has no clock table for disability or pension claims.",
+  "source": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+  "time_to_appeal": {
+    "value": 60,
+    "unit": "days",
+    "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
+    "note": "29 CFR 2560.503-1(h)(2)(i): at least 60 days, not the 180 days a group health plan allows under (h)(3)(i). This file exists to be refused with the right number in the message; it deliberately ships no other clocks."
+  }
+}

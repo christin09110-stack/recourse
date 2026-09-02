@@ -1,0 +1,3 @@
+[console_scripts]
+recourse-api = recourse.api.app:main
+recourse-mcp = recourse.mcp_server.server:main
