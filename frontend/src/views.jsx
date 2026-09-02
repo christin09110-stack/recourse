@@ -687,9 +687,10 @@ function LetterCard({ appeal, level, historic, denial, documents }) {
       <div className="letter-body">{level.letter_body}</div>
 
       <div className="letter-assertions">
-        <h4>
-          Every clinical sentence, and the document behind it
-        </h4>
+        {/* Every assertion, not only the clinical ones: the point of the list is
+            that a reader can see which sentences needed a document and whether
+            they got one. Showing only the cited ones would hide the failure. */}
+        <h4>What this letter asserts, and what each sentence rests on</h4>
         {level.assertions.length === 0 ? (
           <p className="muted">This draft makes no assertions that need a document behind them.</p>
         ) : (

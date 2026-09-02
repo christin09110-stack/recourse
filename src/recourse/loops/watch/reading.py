@@ -80,6 +80,17 @@ def build_reading_tools(store: CaseStore, clock: Callable[[], date]) -> list[Any
             "needs": [{"kind": r.kind, "why": r.why, "required": r.required}
                       for r in requirements_for(found)],
             "missing": [{"kind": r.kind, "why": r.why} for r in gaps(store.case, found)],
+            # What is actually in the file, with the ids to cite it by. Without
+            # this the agent was told what an appeal needs and never what it had,
+            # so every assertion it wrote came back with no document behind it -
+            # the traceability the letter's credibility rests on, empty on every
+            # run, because nothing ever told it the documents had names.
+            "on_file": [
+                {"document_id": d.document_id, "kind": d.kind, "title": d.title,
+                 "received_on": d.received_on.isoformat()}
+                for r in requirements_for(found)
+                for d in store.case.documents_of_kind(r.kind)
+            ],
             # False for every clinical denial, letter on file or not. The gap there is
             # authorship, not paperwork: the argument is the treating clinician's.
             "can_prepare_alone": can_prepare_alone(store.case, found),

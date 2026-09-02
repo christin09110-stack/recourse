@@ -423,15 +423,19 @@ a { color: var(--accent); }
 .count-terminal { font-size: 22px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
 .count-label { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; opacity: .8; }
 
-.risk-band-ok .deadline-count { background: var(--calm-bg); color: var(--calm); border-right: 1px solid var(--calm-line); }
-.risk-band-approaching .deadline-count { background: var(--amber-bg); color: var(--amber); border-right: 1px solid var(--amber-line); }
-.risk-band-critical .deadline-count { background: var(--crit-bg); color: var(--crit); border-right: 1px solid var(--crit-line); }
-.risk-band-unassessable .deadline-count { background: var(--unknown-bg); color: var(--unknown); border-right: 1px solid var(--unknown-line); }
+/* One variable trio per risk, so the divider between the count and the card
+   can move from the right edge to the bottom when the card stacks, without
+   four more rules repeating four more colours. */
+.risk-band-ok { --band-bg: var(--calm-bg); --band-ink: var(--calm); --band-line: var(--calm-line); }
+.risk-band-approaching { --band-bg: var(--amber-bg); --band-ink: var(--amber); --band-line: var(--amber-line); }
+.risk-band-critical { --band-bg: var(--crit-bg); --band-ink: var(--crit); --band-line: var(--crit-line); }
+.risk-band-unassessable { --band-bg: var(--unknown-bg); --band-ink: var(--unknown); --band-line: var(--unknown-line); }
+.deadline-count { background: var(--band-bg); color: var(--band-ink); border-right: 1px solid var(--band-line); }
 
 /* MISSED is not a fourth shade of warning. It is a solid dark block with light
    text on it, and the card around it is bordered in the same colour, because a
    closed appeal window is the one unrecoverable state in this domain. */
-.risk-band-missed .deadline-count { background: var(--terminal-bg); color: var(--terminal-ink); border-right: 1px solid var(--terminal-line); }
+.risk-band-missed { --band-bg: var(--terminal-bg); --band-ink: var(--terminal-ink); --band-line: var(--terminal-line); }
 .deadline-missed { border-color: var(--terminal); box-shadow: 0 0 0 1px var(--terminal); }
 .deadline-missed .deadline-sentence { color: var(--terminal); font-weight: 600; }
 
@@ -648,6 +652,12 @@ a { color: var(--accent); }
   .top-nav { flex-wrap: wrap; height: auto; padding: 10px 14px; gap: 12px; }
   .top-nav-items { order: 3; flex-basis: 100%; overflow-x: auto; }
   .deadline-card { grid-template-columns: 1fr; }
+  .deadline-count {
+    padding: 14px 12px;
+    border-right: 0; border-bottom: 1px solid var(--band-line);
+    grid-auto-flow: column; grid-auto-columns: max-content;
+    justify-content: start; gap: 9px; align-items: baseline;
+  }
   .journal li { grid-template-columns: 1fr; gap: 4px; }
   .rule-id { display: none; }
 }

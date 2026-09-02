@@ -14,6 +14,7 @@ refusal absent from the log reads as a thing that never happened.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
@@ -32,8 +33,13 @@ class TrailEntry:
 class AuditTrail(HookProvider):
     """One trail per run. Two runs sharing an instance interleave two case files."""
 
-    def __init__(self) -> None:
+    def __init__(self, clock: Callable[[], datetime] | None = None) -> None:
         self._entries: list[TrailEntry] = []
+        # The world's clock, not the wall's. Everything else on screen — the
+        # journal, the countdowns, the notice dates — runs on the frozen demo
+        # clock, and a trail stamped from the real one made two halves of the same
+        # screen disagree about what day it was.
+        self._clock = clock or (lambda: datetime.now(timezone.utc))
 
     def register_hooks(self, registry: HookRegistry, **kwargs: Any) -> None:
         registry.add_callback(BeforeModelCallEvent, self._on_model)
@@ -41,7 +47,7 @@ class AuditTrail(HookProvider):
         registry.add_callback(AfterToolCallEvent, self._on_result)
 
     def record(self, kind: str, label: str, detail: dict[str, Any] | None = None) -> None:
-        self._entries.append(TrailEntry(kind, label, datetime.now(timezone.utc), dict(detail or {})))
+        self._entries.append(TrailEntry(kind, label, self._clock(), dict(detail or {})))
 
     def entries(self) -> list[TrailEntry]:
         return list(self._entries)

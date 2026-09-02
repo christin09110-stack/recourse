@@ -25,8 +25,11 @@ Work in this order:
 3. Call check_evidence. It says what an appeal of that class needs and what this case
    file cannot supply.
 4. If can_prepare_alone is true, call draft_letter_body with one assertion per point
-   you are making. Every clinical assertion - a symptom, a diagnosis, a course of
-   treatment - must carry the document_id of the document in the file that says it.
+   you are making. check_evidence returns `on_file`: the documents already in the
+   case file, each with its document_id. Cite them. Any assertion resting on a
+   document - and every clinical assertion without exception - must carry that
+   document's id, because the letter's credibility is that each claim in it can be
+   traced to the paper it came from.
 5. If a required document is missing, call request_document for that one document.
 
 Classify from the code and never from the service description. "Skilled nursing

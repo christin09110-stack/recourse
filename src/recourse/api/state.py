@@ -51,7 +51,9 @@ def build_state(autonomy: AutonomyLevel = AutonomyLevel.BALANCED) -> RecourseSta
         store=CaseStore(world.case_file()),
         inbox=DecisionInbox(),
         journal=Journal(),
-        trail=AuditTrail(),
+        # On the world clock: see AuditTrail.__init__. A trail stamped from the
+        # wall clock put 19:59 under a journal reading 09:00 on the same screen.
+        trail=AuditTrail(clock=world.now_at),
         autonomy=autonomy,
     )
     _record_seeded_history(state)
