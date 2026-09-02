@@ -68,7 +68,10 @@ def add_case_routes(app: FastAPI) -> None:
             "case_id": case.case_id,
             "claims": [claim_view(claim) for claim in case.claims.values()],
             "documents": [document_view(doc) for doc in case.documents.values()],
-            "denial_ids": sorted(case.denials),
+            # The denials in full, not their ids. The Case file screen shows which
+            # lines were refused and why, and a screen that had to fetch a second
+            # route to find that out would render the episode once without it.
+            "denials": [denial_view(case, denial) for denial in case.denials.values()],
         }
 
     @app.get("/api/denials")

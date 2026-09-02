@@ -34,7 +34,7 @@ def test_the_case_file_holds_the_episode(client):
     case = client.get("/api/case").json()
     assert case["case_id"] == "case-okafor-reyes"
     assert len(case["claims"]) == 5
-    assert len(case["denial_ids"]) == 4
+    assert len(case["denials"]) == 4
     # Money crosses as a string, never a float the browser would have to divide.
     line = case["claims"][0]["lines"][0]
     assert isinstance(line["billed"], str) and "." in line["billed"]

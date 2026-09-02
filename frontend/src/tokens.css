@@ -1,0 +1,68 @@
+/* The console's whole palette, in one place.
+
+   Deliberately quiet. The only saturated colour on the screen is a deadline's
+   urgency, so that urgency is the thing the eye finds first — a console that
+   painted its chrome as loudly as its warnings would bury the one screen this
+   product exists for.
+
+   The urgency scale has four steps and the fourth is not a fourth shade of the
+   third. `ok`, `approaching` and `critical` are tinted chips on a light ground;
+   `missed` is a solid dark block with light text, because a closed appeal window
+   is the only unrecoverable state in this domain and it must never read as a
+   slightly worse warning. */
+
+:root {
+  --ground:#ffffff;
+  --surface:#f6f7f9;
+  --surface-2:#eceff3;
+  --line:#e2e6ec;
+  --line-strong:#c6ccd7;
+
+  --ink:#12161d;
+  --ink-2:#525b6a;
+  --ink-3:#858e9d;
+
+  /* Harbor blue: the plans in the seeded world are named for the coast, and a
+     cool accent leaves the whole warm end of the spectrum to the clocks. */
+  --accent:#0f5c86;
+  --accent-ink:#ffffff;
+  --accent-soft:#e8f1f7;
+  --accent-line:#b3d2e4;
+
+  /* The four steps of the countdown. */
+  --calm:#0e6146;      --calm-bg:#e9f4ef;   --calm-line:#b4dcce;
+  --amber:#8a5300;     --amber-bg:#fdf2e0;  --amber-line:#ecca8f;
+  --crit:#a5231a;      --crit-bg:#fdecea;   --crit-line:#f0b3ad;
+  --terminal:#4a0d09;  --terminal-bg:#3d0a07; --terminal-ink:#ffe9e6; --terminal-line:#6d1a14;
+  --unknown:#5b4b7a;   --unknown-bg:#f2effa; --unknown-line:#cdc2e6;
+
+  /* The one clock in this process running against the plan rather than against
+     the claimant. Given its own hue so it can never be mistaken for your risk. */
+  --against:#264f9e;   --against-bg:#eaf0fc;  --against-line:#b9cbef;
+
+  /* Denial classes. Clinical is set apart on purpose: it is the one Recourse
+     hands back, and the screen should say so before the label is read. */
+  --clinical:#7a3b12;  --clinical-bg:#fbeee3; --clinical-line:#e6c19d;
+  --routine:#3d4757;   --routine-bg:#eef1f5;  --routine-line:#ccd3dd;
+
+  --r-sm:5px; --r:9px; --r-lg:14px; --r-pill:9999px;
+
+  --sans:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+         Arial, 'Noto Sans', sans-serif;
+  --serif:'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --mono:ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --fs-base:14px; --lh-base:20px;
+
+  --nav-bg:#111721;
+  --nav-bg-2:#1b2430;
+  --nav-ink:#ffffff;
+  --nav-ink-dim:#9aa5b4;
+  --nav-active:rgba(255,255,255,0.12);
+  --nav-h:54px;
+
+  --shadow-card:0 1px 2px rgba(18,22,29,.06), 0 1px 1px rgba(18,22,29,.04);
+  --shadow-pop:0 10px 30px rgba(18,22,29,.16);
+
+  --page-max:1180px;
+}

@@ -10,6 +10,10 @@ dependencies = [
     "pydantic>=2.9",
     "pypdf>=5.1",
     "mcp>=1.2",
+    # FastAPI parses the EOB upload's multipart body through this. Without it the
+    # only route a person starts from raises at import, and the failure reads as a
+    # broken app rather than a missing dependency.
+    "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]
