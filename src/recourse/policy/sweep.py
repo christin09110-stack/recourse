@@ -22,6 +22,7 @@ from datetime import date
 from recourse.domain.case import CaseFile
 from recourse.domain.clocks import deadlines_for, insurer_is_overdue, risk_for
 from recourse.policy.finding import Finding
+from recourse.rulebook.loader import PlanTypeNotInScope
 from recourse.domain.types import AutonomyLevel, DeadlineRisk
 from recourse.policy.rules import THRESHOLDS
 
@@ -54,18 +55,28 @@ def sweep(
         claim = case_file.claim_for_line(denial.line_id) if denial else None
         plan = case_file.plans.get(appeal.plan_id)
         if claim is None or plan is None:
-            # Unreadable rather than fine. The caller escalates it as unassessable
-            # instead of quietly leaving an appeal out of the count.
+            findings.append(Finding.unreadable(appeal, "its claim or plan is missing"))
             continue
 
-        deadlines = deadlines_for(
-            plan=plan, service_type=claim.service_type, stage=appeal.stage,
-            stage_started_on=appeal.stage_started_on,
-            # The plan's clock runs from the day the appeal was posted. Passing the
-            # notice date here reported an insurer as months late answering an appeal
-            # that had never been sent to them.
-            filed_on=appeal.sent_on,
-        )
+        try:
+            deadlines = deadlines_for(
+                plan=plan, service_type=claim.service_type, stage=appeal.stage,
+                stage_started_on=appeal.stage_started_on,
+                # The plan's clock runs from the day the appeal was posted. Passing
+                # the notice date here reported an insurer as months late answering
+                # an appeal that had never been sent to them.
+                filed_on=appeal.sent_on,
+            )
+        except (PlanTypeNotInScope, LookupError, ValueError) as refusal:
+            # One appeal on a plan type we have no clock table for used to take the
+            # whole screen down with it: this raised, `GET /api/deadlines` became a
+            # 500, and every other appeal vanished — including one at day 150 of 180.
+            # Silence as a window closes, arriving through the door marked "we refuse
+            # to guess". Refusing to compute one clock must never stop us reporting
+            # the rest, and the one we cannot read is itself worth saying out loud.
+            findings.append(Finding.unreadable(appeal, str(refusal)))
+            continue
+
         risk = risk_for(deadlines, now, warn_days)
         remaining = (deadlines.mine - now).days if deadlines.mine else None
         findings.append(Finding(

@@ -119,6 +119,7 @@ export default function App() {
 
   const Screen = SCREENS[route] || V.DeadlinesScreen
   const overdue = deadlines.filter((d) => d.insurer_overdue).length
+  const working = Boolean(busy.triage || busy.press)
 
   return (
     <div className="app-shell">
@@ -162,9 +163,27 @@ export default function App() {
         </div>
       </header>
 
+      {/* A WATCH or PRESS run is a real model round-trip and takes tens of
+          seconds. A disabled button is not enough feedback for that long, and
+          the alternative — a console that looks frozen — is what people reload. */}
+      {working && (
+        <div className="working-rail" role="status">
+          <span className="working-bar" aria-hidden="true" />
+          <span>
+            {busy.triage
+              ? 'Recourse is reading the case file, classifying each denial and checking the evidence behind it.'
+              : 'Recourse is sweeping every open appeal against its clocks.'}
+          </span>
+        </div>
+      )}
+
       {overdue > 0 && route !== 'deadlines' && (
         <button type="button" className="overdue-rail" onClick={() => go('deadlines')}>
-          <strong>{overdue === 1 ? 'One plan is' : `${overdue} plans are`} past its own deadline to answer.</strong>
+          <strong>
+            {overdue === 1
+              ? 'One plan is past its own deadline to answer.'
+              : `${overdue} plans are past their own deadlines to answer.`}
+          </strong>
           <span>See the deadlines →</span>
         </button>
       )}

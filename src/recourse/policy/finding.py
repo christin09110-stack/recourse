@@ -25,13 +25,34 @@ class Finding:
     days_remaining: int | None
     insurer_overdue: bool
 
+    #: Why no clocks could be computed, when that is the situation. An appeal we
+    #: cannot read is not an appeal that is fine.
+    unreadable_because: str | None = None
+
+    @classmethod
+    def unreadable(cls, appeal: Appeal, why: str) -> "Finding":
+        """A finding for an appeal whose clocks cannot be computed at all."""
+        return cls(
+            appeal=appeal,
+            deadlines=Deadlines(stage=appeal.stage, mine=None, theirs=None,
+                                next_stage=None, next_stage_window_days=None,
+                                basis="no clocks could be computed"),
+            risk=DeadlineRisk.OK, days_remaining=None, insurer_overdue=False,
+            unreadable_because=why,
+        )
+
     @property
     def needs_raising(self) -> bool:
+        if self.unreadable_because:
+            return True
         return self.risk is not DeadlineRisk.OK or self.insurer_overdue
 
     @property
     def sentence(self) -> str:
         """What a person is actually told. Plain, and never a rule code."""
+        if self.unreadable_because:
+            return ("Recourse cannot work out the deadlines on this one: "
+                    f"{self.unreadable_because}")
         if self.risk is DeadlineRisk.MISSED:
             return ("The window to appeal this has closed. Nothing about the merits "
                     "matters now.")
