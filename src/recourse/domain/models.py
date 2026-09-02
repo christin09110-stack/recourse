@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from datetime import date
 
 from recourse.domain.money import Money
+from recourse.domain.line import ClaimLine
 from recourse.domain.types import DenialClass, PlanType, ServiceType
 
 
@@ -43,32 +44,6 @@ class Document:
     received_on: date
     #: Extracted text, where there is any. Absent for a scan nobody has read.
     text: str = ""
-
-
-@dataclass(frozen=True)
-class ClaimLine:
-    """One service on an Explanation of Benefits."""
-
-    line_id: str
-    claim_id: str
-    description: str
-    service_date: date
-    provider: str
-    billed: Money
-    allowed: Money
-    plan_paid: Money
-    patient_responsibility: Money
-    #: X12 Claim Adjustment Reason Codes, and the Remark Codes that qualify them.
-    carc: tuple[str, ...] = ()
-    rarc: tuple[str, ...] = ()
-    #: Set when the parser could not read the line. Such a line is surfaced for a
-    #: human, never dropped: a silently discarded denial is the exact failure this
-    #: product exists to prevent.
-    needs_review: bool = False
-
-    @property
-    def is_denied(self) -> bool:
-        return bool(self.carc) and self.plan_paid.cents == 0
 
 
 @dataclass(frozen=True)

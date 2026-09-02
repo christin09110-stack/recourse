@@ -15,11 +15,13 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
+from reportlab import rl_config
 from reportlab.lib.pagesizes import LETTER
 from reportlab.pdfgen.canvas import Canvas
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from samples_data import ALL, Sample  # noqa: E402
+from samples_data import ACA, ERISA, Sample  # noqa: E402
+from samples_edge import ALL as EDGE  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 ROW = "{date:<10} {proc:<6} {desc:<32} {billed:>10} {allowed:>10} {paid:>10} {resp:>10}  {codes}"
@@ -70,7 +72,13 @@ def _draw_notes(line: Callable[..., None], sample: Sample) -> None:
 
 
 def build(sample: Sample) -> Path:
-    """Write one sample PDF and return its path."""
+    """Write one sample PDF and return its path.
+
+    `invariant` freezes the creation timestamp and document id, so regenerating
+    gives byte-identical files and a rebuild shows up in git only when the content
+    really changed.
+    """
+    rl_config.invariant = 1
     path = HERE / sample.filename
     canvas = Canvas(str(path), pagesize=LETTER)
     canvas.setTitle(sample.insurer)
@@ -81,7 +89,7 @@ def build(sample: Sample) -> Path:
 
 
 def main() -> None:
-    for sample in ALL:
+    for sample in (ACA, ERISA, *EDGE):
         print(build(sample))
 
 

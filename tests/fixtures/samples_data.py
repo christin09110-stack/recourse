@@ -1,9 +1,8 @@
 """The literal content of the sample EOBs. Invented insurers, real X12 codes.
 
-Four documents, because the parser has four things to prove: an ACA episode with
-two denials, an ERISA episode with one, a table whose rows are damaged (the parser
-must still return one line per row, flagged), and a page that is not an EOB at all
-(the parser must invent nothing).
+Four documents, one per thing the parser must prove: an ACA episode with two
+denials, an ERISA episode with one, a table with damaged rows (still one line per
+row, flagged), and a page that is not an EOB at all (invent nothing).
 """
 
 from __future__ import annotations
@@ -24,9 +23,8 @@ class Sample:
 
 
 def row(date: str, proc: str, desc: str, amounts: tuple[str, str, str, str], codes: str = "--") -> dict[str, str]:
-    billed, allowed, paid, resp = amounts
-    return {"date": date, "proc": proc, "desc": desc, "billed": billed,
-            "allowed": allowed, "paid": paid, "resp": resp, "codes": codes}
+    keys = ("billed", "allowed", "paid", "resp")
+    return {"date": date, "proc": proc, "desc": desc, "codes": codes, **dict(zip(keys, amounts, strict=True))}
 
 
 ACA = Sample(
@@ -54,7 +52,7 @@ ACA = Sample(
         "16  Claim/service lacks information or has submission/billing error(s).",
         "N290  Missing/incomplete/invalid rendering provider primary identifier.",
         "50  These are non-covered services because this is not deemed a medical necessity by the payer.",
-        "N130  Consult plan benefit documents/guidelines for information about restrictions for this service.",
+        "N130  Consult plan benefit documents for restrictions applying to this service.",
     ),
     rights=(
         "If you disagree with this decision you may file an internal appeal within 180 days of the date of this notice.",
@@ -83,41 +81,10 @@ ERISA = Sample(
     totals=("9,750.00", "4,860.00", "3,888.00", "2,852.00"),
     legend=(
         "197  Precertification/authorization/notification/pre-treatment absent.",
-        "N130  Consult plan benefit documents/guidelines for information about restrictions for this service.",
+        "N130  Consult plan benefit documents for restrictions applying to this service.",
     ),
     rights=(
         "You have 180 days from the date of this notice to file a first-level appeal, and this plan requires two",
         "internal levels before you may bring a civil action under ERISA section 502(a).",
     ),
 )
-
-MANGLED = Sample(
-    filename="sample-mangled-eob.pdf",
-    insurer="Meridian Health Alliance",
-    header=(("Member ID:", "MHA-4477201983"), ("Claim Number:", "2026-CLM-9910044"), ("Notice Date:", "05/02/2026")),
-    rows=(
-        row("06/01/2026", "99213", "Office visit, established", ("180.00", "112.00", "89.60", "22.40")),
-        row("06/01/2026", "J1885", "Ketorolac injection", ("###.##", "?", "", ""), "16"),
-        {"date": "", "proc": "", "desc": "  95810  Sleep study, attended", "billed": "1,940.00",
-         "allowed": "0.00", "paid": "0.00", "resp": "1,940.00", "codes": "50"},
-        row("06/02/2026", "36415", "Collection of venous blood", ("42.00", "26.00", "20.80", "5.20")),
-    ),
-    totals=("2,162.00", "138.00", "110.40", "1,967.60"),
-    legend=("16  Claim/service lacks information or has submission/billing error(s).",),
-)
-
-UNRELATED = Sample(
-    filename="sample-unrelated.pdf",
-    insurer="Fairhaven Regional Medical Center",
-    header=(("Re:", "Parking validation for visitors"),),
-    rows=(),
-    totals=("", "", "", ""),
-    legend=(
-        "Visitor parking is validated at the main desk on 03/14/2026 and thereafter.",
-        "The daily rate is 12.00 and the weekly maximum is 45.00 for registered families.",
-        "Questions about the shuttle timetable should go to the volunteer office.",
-    ),
-    subtitle="NOTICE TO VISITORS FROM THE FACILITIES OFFICE",
-)
-
-ALL: tuple[Sample, ...] = (ACA, ERISA, MANGLED, UNRELATED)
