@@ -127,5 +127,27 @@
       "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml",
       "note": "29 CFR 2560.503-1(c)(2): a plan may require up to two mandatory appeals before a civil action under ERISA section 502(a). Exhaustion of those levels is the precondition."
     }
-  ]
+  ],
+  "external_review": {
+    "request_within": {
+      "value": 4,
+      "unit": "months",
+      "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2590-715-2719.xml",
+      "note": "29 CFR 2590.715-2719(d)(2)(i) \u2014 the federal process must accept a request filed within four months of the final internal denial. A binding State process must allow at least the same, per (c)(2)(vi)."
+    },
+    "standard_decision": {
+      "value": 45,
+      "unit": "days",
+      "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2590-715-2719.xml",
+      "note": "The IRO must decide within 45 days of receiving the request \u2014 (c)(2)(xii)."
+    },
+    "expedited_decision": {
+      "value": 72,
+      "unit": "hours",
+      "citation": "https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2590-715-2719.xml",
+      "note": "Urgent care retains the 72-hour clock of 29 CFR 2560.503-1(f)(2)(i)."
+    },
+    "condition": "non_grandfathered",
+    "condition_note": "Grandfathered plans are exempt: 29 CFR 2590.715-2719(a)(1)(ii) says the section generally does not apply to them, and for those the step after exhaustion is a civil action under ERISA 502(a), not external review."
+  }
 }

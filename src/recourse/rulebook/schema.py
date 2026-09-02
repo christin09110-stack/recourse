@@ -1,14 +1,10 @@
 """The shape of a plan-type rulebook file.
 
-Every numeric limit in this system is a `Figure`, and a `Figure` refuses to exist
-without the URL it was read from. That is deliberate: these numbers end up in a
-letter arguing with an insurer, and a figure nobody can trace is a figure nobody can
-defend. The check lives in `__post_init__` so an uncited number cannot be introduced
-later by a data file, a migration or a well-meaning edit.
-
-Clocks are tuples rather than single values because an ERISA plan may require two
-mandatory internal appeals (29 CFR 2560.503-1 (c)(2)), which splits a 60-day
-post-service answer into 30 days and then 30 more. One entry per level.
+A `Figure` refuses to exist without the URL it was read from: these numbers end up in
+a letter arguing with an insurer, and the check sits in `__post_init__` so that no
+later data file can slip an uncited one in. Clocks are tuples because an ERISA plan
+may require two mandatory internal appeals (29 CFR 2560.503-1 (c)(2)), which splits a
+60-day post-service answer into 30 days and then 30 more: one entry per level.
 """
 
 from __future__ import annotations
@@ -39,28 +35,21 @@ class Figure:
 
     @property
     def label(self) -> str:
-        """`"180 days"` — how the console and a letter say it."""
-        return f"{self.value} {self.unit}"
+        return f"{self.value} {self.unit}"  # "180 days", as a letter would say it
 
 
 @dataclass(frozen=True)
 class ClockTable:
-    """A limit per service type. Every deadline in the regulation forks here.
-
-    Each entry is one figure per mandatory appeal level, so a two-level post-service
-    clock reads as `(30 days, 30 days)` rather than a single 60 nobody can split.
-    """
+    """A limit per service type, one figure per mandatory appeal level."""
 
     urgent: tuple[Figure, ...]
     pre_service: tuple[Figure, ...]
     post_service: tuple[Figure, ...]
 
     def for_service(self, service_type: ServiceType) -> tuple[Figure, ...]:
-        return {
-            ServiceType.URGENT: self.urgent,
-            ServiceType.PRE_SERVICE: self.pre_service,
-            ServiceType.POST_SERVICE: self.post_service,
-        }[service_type]
+        # The fields are named for the ServiceType values so that adding a service
+        # type without adding its clock fails here rather than returning a wrong one.
+        return getattr(self, service_type.value)
 
 
 @dataclass(frozen=True)
