@@ -49,17 +49,23 @@ def deadlines_for(
     service_type: ServiceType,
     stage: AppealStage,
     stage_started_on: date | None,
+    filed_on: date | None = None,
 ) -> Deadlines:
     """The clocks attached to one appeal at one stage.
 
     `stage_started_on` is the notice date for a first-level appeal, and the date the
     previous level was answered for anything after it. `None` means this stage has
     not begun, and every date comes back `None` rather than invented.
+
+    `filed_on` is when the appeal was actually posted, and it is what the *plan's*
+    deadline runs from — not the notice date. Getting that wrong reported an insurer
+    as three months late answering an appeal nobody had sent them yet, which is a
+    false accusation the console would have shown as fact.
     """
     rules = for_plan_type(plan.plan_type)
 
     if stage in (AppealStage.INTERNAL_1, AppealStage.INTERNAL_2):
-        return _internal(rules, plan, service_type, stage, stage_started_on)
+        return _internal(rules, plan, service_type, stage, stage_started_on, filed_on)
     if stage is AppealStage.EXTERNAL:
         return _external(rules, stage_started_on)
     return Deadlines(
@@ -69,7 +75,7 @@ def deadlines_for(
     )
 
 
-def _internal(rules, plan, service_type, stage, started_on) -> Deadlines:
+def _internal(rules, plan, service_type, stage, started_on, filed_on) -> Deadlines:
     to_appeal = _days(rules.time_to_appeal)
     decision = rules.decision_on_appeal.for_levels(plan.internal_levels)
     theirs_figure = decision.for_service(service_type)[_internal_stage_index(stage)]
@@ -81,7 +87,7 @@ def _internal(rules, plan, service_type, stage, started_on) -> Deadlines:
     return Deadlines(
         stage=stage,
         mine=started_on + timedelta(days=to_appeal) if started_on else None,
-        theirs=started_on + timedelta(days=_days(theirs_figure)) if started_on else None,
+        theirs=filed_on + timedelta(days=_days(theirs_figure)) if filed_on else None,
         next_stage=nxt,
         next_stage_window_days=window,
         basis=f"{to_appeal} days to appeal; {_days(theirs_figure)} days for the plan to answer",
@@ -134,6 +140,9 @@ def insurer_is_overdue(deadlines: Deadlines, now: date, answered_on: date | None
     Worth surfacing on its own. It is the one clock in this process that runs
     against the insurer, and nobody but the claimant is counting it.
     """
+    # `theirs` is None until the appeal is actually filed, which is the guard that
+    # matters: an unsent appeal has not started anybody's clock, and saying the plan
+    # is late answering it would be an accusation about a letter they never received.
     if deadlines.theirs is None or answered_on is not None:
         return False
     return now > deadlines.theirs

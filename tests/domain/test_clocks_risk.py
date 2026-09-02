@@ -34,9 +34,15 @@ ERISA_GRANDFATHERED = Plan(plan_id="p-gf", name="Kestrel Legacy",
                            internal_levels=1, grandfathered=True)
 
 
-def _first(plan, service=ServiceType.POST_SERVICE, started=NOTICE):
+#: The claimant posted the appeal a fortnight after the notice. The plan's clock
+#: runs from that date, not from its own denial.
+FILED = date(2026, 7, 12)
+
+
+def _first(plan, service=ServiceType.POST_SERVICE, started=NOTICE, filed=FILED):
     return deadlines_for(plan=plan, service_type=service,
-                         stage=AppealStage.INTERNAL_1, stage_started_on=started)
+                         stage=AppealStage.INTERNAL_1, stage_started_on=started,
+                         filed_on=filed)
 
 
 # -- risk --------------------------------------------------------------------
@@ -70,7 +76,15 @@ def test_an_insurer_past_its_own_deadline_is_reported():
     """The one clock in this process that runs against the plan, and nobody but
     the claimant is counting it."""
     d = _first(ACA)
-    assert insurer_is_overdue(d, date(2026, 9, 15), answered_on=None) is True
+    assert insurer_is_overdue(d, date(2026, 9, 20), answered_on=None) is True
+
+
+def test_an_unsent_appeal_never_makes_the_insurer_late():
+    """The clock starts when the letter is posted. Counting it from the denial
+    accused a plan of being months late answering something nobody had sent."""
+    unsent = _first(ACA, filed=None)
+    assert unsent.theirs is None
+    assert insurer_is_overdue(unsent, date(2027, 6, 1), answered_on=None) is False
 
 
 def test_an_insurer_that_answered_is_not_overdue():

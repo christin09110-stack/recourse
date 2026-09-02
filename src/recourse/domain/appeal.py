@@ -16,6 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 
+from recourse.domain.deadline import Deadlines, Escalation  # noqa: F401  (re-export)
 from recourse.domain.types import AppealStage, Outcome
 
 
@@ -34,21 +35,18 @@ class Assertion:
 
 
 @dataclass(frozen=True)
-class Appeal:
-    appeal_id: str
-    denial_id: str
-    plan_id: str
+class StageRecord:
+    """One level of one appeal, and everything that happened at it."""
+
     stage: AppealStage
-    outcome: Outcome = Outcome.PENDING
-    #: When this stage's clock started: the notice date for level one, and the date
+    #: When this level's clock began: the notice date for the first, and the date
     #: the previous level was answered for anything after it.
-    stage_started_on: date | None = None
-    #: Set when the insurer answers. Until then the next stage has no start date and
-    #: `clocks` says so rather than inventing one.
-    answered_on: date | None = None
+    started_on: date | None = None
     letter_body: str = ""
     assertions: tuple[Assertion, ...] = ()
     sent_on: date | None = None
+    answered_on: date | None = None
+    outcome: Outcome = Outcome.PENDING
 
     @property
     def is_open(self) -> bool:
@@ -56,36 +54,74 @@ class Appeal:
 
 
 @dataclass(frozen=True)
-class Deadlines:
-    """Every clock attached to one appeal at one stage.
+class Appeal:
+    """An appeal, as the stack of levels it has passed through.
 
-    `mine` is what the claimant must do and by when. `theirs` is what the plan owes
-    and by when — an insurer past its own limit is itself a fact worth raising, and
-    the reason both live on one object.
+    Not as "a stage plus some fields", which is how this started and was wrong. An
+    ERISA plan may require two mandatory internal levels, and level two exists
+    precisely to contest what level one decided — so a shape that overwrote the
+    first level's outcome, date and letter on advancing destroyed the record the
+    second level argues against.
 
-    A `None` means the clock has not started, which is different from a clock that
-    has run out. A two-level ERISA appeal whose first level is unanswered genuinely
-    has no second-level date yet, and saying so is more use than a guess.
+    Advancing is an append. History is therefore intrinsic to the appeal rather than
+    an artefact kept beside it by whatever mutated it, which also means the API can
+    serialise an appeal and have its history come with it, and that a field added
+    here later cannot silently survive a stage change by being forgotten in a list
+    of things to blank.
     """
 
-    stage: AppealStage
-    mine: date | None
-    theirs: date | None
-    next_stage: AppealStage | None
-    next_stage_window_days: int | None
-    #: Prose for the console and the escalation, e.g. "180 days from the notice date".
-    basis: str = ""
-    citation: str = ""
+    appeal_id: str
+    denial_id: str
+    plan_id: str
+    levels: tuple[StageRecord, ...]
 
+    @classmethod
+    def opened(
+        cls, *, appeal_id: str, denial_id: str, plan_id: str,
+        stage: AppealStage = AppealStage.INTERNAL_1,
+        started_on: date | None = None, **level: object,
+    ) -> Appeal:
+        """A new appeal at its first level. The common case, said plainly."""
+        return cls(appeal_id, denial_id, plan_id,
+                   (StageRecord(stage=stage, started_on=started_on, **level),))
 
-@dataclass(frozen=True)
-class Escalation:
-    """A question the agent will not answer for itself."""
+    @property
+    def current(self) -> StageRecord:
+        return self.levels[-1]
 
-    rule: str
-    detail: str
-    appeal_id: str | None = None
-    raised_at: datetime | None = None
-    #: Rises the longer a deadline escalation goes unanswered. The one thing this
-    #: system must never do is go quiet as a clock runs out.
-    severity: int = 1
+    @property
+    def stage(self) -> AppealStage:
+        return self.current.stage
+
+    @property
+    def outcome(self) -> Outcome:
+        return self.current.outcome
+
+    @property
+    def stage_started_on(self) -> date | None:
+        return self.current.started_on
+
+    @property
+    def answered_on(self) -> date | None:
+        return self.current.answered_on
+
+    @property
+    def letter_body(self) -> str:
+        return self.current.letter_body
+
+    @property
+    def assertions(self) -> tuple[Assertion, ...]:
+        return self.current.assertions
+
+    @property
+    def sent_on(self) -> date | None:
+        return self.current.sent_on
+
+    @property
+    def is_open(self) -> bool:
+        return self.current.is_open
+
+    @property
+    def history(self) -> tuple[StageRecord, ...]:
+        """The levels already answered, oldest first."""
+        return self.levels[:-1]

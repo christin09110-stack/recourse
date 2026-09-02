@@ -39,9 +39,15 @@ ERISA_GRANDFATHERED = Plan(plan_id="p-gf", name="Kestrel Legacy",
                            internal_levels=1, grandfathered=True)
 
 
-def _first(plan, service=ServiceType.POST_SERVICE, started=NOTICE):
+#: The claimant posted the appeal a fortnight after the notice. The plan's clock
+#: runs from that date, not from its own denial.
+FILED = date(2026, 7, 12)
+
+
+def _first(plan, service=ServiceType.POST_SERVICE, started=NOTICE, filed=FILED):
     return deadlines_for(plan=plan, service_type=service,
-                         stage=AppealStage.INTERNAL_1, stage_started_on=started)
+                         stage=AppealStage.INTERNAL_1, stage_started_on=started,
+                         filed_on=filed)
 
 
 # -- the claimant's clock ----------------------------------------------------
@@ -60,11 +66,11 @@ def test_erisa_also_gives_180_days_for_a_health_plan():
 # -- the insurer's clock -----------------------------------------------------
 
 def test_a_one_level_post_service_appeal_must_be_answered_in_60_days():
-    assert _first(ACA).theirs == NOTICE.replace(month=8, day=27)
+    assert _first(ACA).theirs == date(2026, 9, 10)   # 12 Jul + 60
 
 
 def test_a_pre_service_appeal_must_be_answered_in_30():
-    assert _first(ACA, ServiceType.PRE_SERVICE).theirs == date(2026, 7, 28)
+    assert _first(ACA, ServiceType.PRE_SERVICE).theirs == date(2026, 8, 11)  # +30
 
 
 def test_two_mandatory_erisa_levels_split_the_post_service_clock_into_30_and_30():
@@ -72,12 +78,12 @@ def test_two_mandatory_erisa_levels_split_the_post_service_clock_into_30_and_30(
     days at each level rather than 60 once, so level one is answerable a month
     earlier than a reader of the headline figure would expect."""
     level_one = _first(ERISA_TWO)
-    assert level_one.theirs == date(2026, 7, 28)
+    assert level_one.theirs == date(2026, 8, 11)   # 12 Jul + 30, not + 60
     assert level_one.next_stage is AppealStage.INTERNAL_2
 
 
 def test_two_erisa_levels_split_pre_service_into_15_and_15():
-    assert _first(ERISA_TWO, ServiceType.PRE_SERVICE).theirs == date(2026, 7, 13)
+    assert _first(ERISA_TWO, ServiceType.PRE_SERVICE).theirs == date(2026, 7, 27)  # +15
 
 
 # -- a clock that has not started is not a clock that has run out ------------
@@ -101,7 +107,8 @@ def test_a_stage_that_has_not_started_is_not_at_risk():
 def test_the_second_level_dates_appear_once_the_first_is_answered():
     answered = date(2026, 8, 3)
     second = deadlines_for(plan=ERISA_TWO, service_type=ServiceType.POST_SERVICE,
-                           stage=AppealStage.INTERNAL_2, stage_started_on=answered)
+                           stage=AppealStage.INTERNAL_2, stage_started_on=answered,
+                           filed_on=answered)
     assert second.theirs == date(2026, 9, 2)
 
 
