@@ -5,7 +5,7 @@ gallery takes images, so each page also ships as a PNG, rendered through
 draw.io's own viewer so the export cannot drift from what opens in the editor,
 then trimmed of the whitespace the fixed-size render leaves around it.
 
-    python export_png.py    ->  muster-how-it-works.png, muster-under-the-hood.png
+    python export_png.py    ->  recourse-how-it-works.png, recourse-under-the-hood.png
 """
 
 import asyncio
@@ -19,7 +19,7 @@ from playwright.async_api import async_playwright
 
 HERE = Path(__file__).parent
 SRC = HERE / "recourse-architecture.drawio"
-NAMES = ["recourse-how-it-works.png"]
+NAMES = ["recourse-how-it-works.png", "recourse-under-the-hood.png"]
 VIEWER = "https://viewer.diagrams.net/js/viewer-static.min.js"
 
 

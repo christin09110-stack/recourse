@@ -137,8 +137,100 @@ a.edge("a3", "s3", "o1", "", BIG_EDGE_ACC, exit=(1, 0.2), entry=(0, 0.5))
 a.edge("a4", "s3", "o2", "", BIG_EDGE_ACC, exit=(1, 0.5), entry=(0, 0.5))
 a.edge("a5", "s3", "o3", "", BIG_EDGE, exit=(1, 0.8), entry=(0, 0.5))
 
-# ========================= page 2 placeholder ==============================
+# ========================== page 2: under the hood ==========================
+# One denial, end to end. Three columns, because the story has three parts that do
+# not interleave: what WATCH decides, what happens to a guarded tool call, and the
+# duty that fires on a schedule while all of that is idle.
+#
+# The two interventions are drawn in their real order. `CitationGuard` sits above
+# `EscalationPolicy` because its Deny short-circuits: an unsupported clinical claim
+# must never reach a policy that would weigh it on urgency and find nothing wrong.
+
+b = Page("Under the hood", 2420, 1120)
+b.node("t", "One denied line, end to end", 50, 30, 700, 34, TITLE)
+b.node("t2", "The two interventions in the order they run, and the duty that fires "
+             "when the agent is about to do nothing.", 50, 68, 900, 22, NOTE)
+
+# -- what WATCH decides ------------------------------------------------------
+b.node("w1", "A denied line\narrives", 60, 195, 170, 90, ACTOR)
+b.node("w2", "WATCH loop\nreads the EOB and classifies each denial\nfrom the X12 code "
+             "the denial itself carries", 270, 180, 280, 120)
+# One classification with three mutually exclusive outcomes, so all three hang off
+# the same spine. Chaining them vertically drew clerical *into* clinical *into*
+# unassessable, which says the denial passes through all three in turn.
+b.node("w3", "clerical\nRecourse may prepare this one alone", 330, 360, 280, 70, ACC)
+b.node("w4", "clinical\nhanded straight back — no combination of\ndocuments makes it "
+             "yours", 330, 450, 280, 90, STOP)
+b.node("w5", "unassessable\na code it cannot read is never “fine”", 330, 560,
+       280, 80)
+b.edge("wa", "w1", "w2")
+b.edge("wb", "w2", "w3", "", EDGE_ACC, exit=(0.10, 1), entry=(0, 0.5))
+b.edge("wc", "w2", "w4", "", EDGE_STOP, exit=(0.20, 1), entry=(0, 0.5))
+b.edge("wd", "w2", "w5", "", EDGE, exit=(0.30, 1), entry=(0, 0.5))
+
+# -- the guarded tool call ---------------------------------------------------
+b.node("m0", "proposes\ndraft_appeal", 640, 360, 190, 70, ACC)
+b.node("m1", "1 · CitationGuard\ndoes every clinical sentence cite a\ndocument in "
+             "this case file?", 900, 165, 300, 115)
+b.node("m1x", "Deny\nnever reaches the world. There is nothing\nhere for a person to "
+              "approve.", 1290, 170, 300, 105, STOP)
+b.node("m2", "2 · EscalationPolicy\nmay it act alone at this\nautonomy level?",
+       900, 340, 300, 110, ACC)
+b.node("m2x", "Proceed\nwithin limits", 1290, 350, 220, 80, OK)
+b.node("m3", "Commit + journal entry\nwhat it wrote · what it cited · who "
+             "decided", 1620, 340, 280, 110, OK)
+b.node("m4", "Confirm\nsnapshot the run and stop", 900, 510, 300, 85, ACC)
+b.node("m5", "Decision inbox\nthe question, and the whole agent state", 900, 650,
+       300, 95)
+b.node("m6", "You", 960, 800, 180, 80, ACTOR)
+b.node("m7", "Approve\nthe same run resumes, later,\non another machine", 1290, 790,
+       300, 100, OK)
+b.node("m8", "Decline\nnothing changes, and it is written\ndown that you refused",
+       1290, 930, 300, 100, STOP)
+
+b.edge("ma", "w3", "m0", "", EDGE_ACC, exit=(1, 0.5), entry=(0, 0.5))
+b.edge("mb", "m0", "m1", "", EDGE_ACC, exit=(1, 0.5), entry=(0, 0.5))
+b.edge("mc", "m1", "m1x", "Deny", EDGE_STOP, exit=(1, 0.5), entry=(0, 0.5))
+b.edge("md", "m1", "m2", "Proceed", EDGE, exit=(0.5, 1), entry=(0.5, 0))
+b.edge("me", "m2", "m2x", "no rule fires", EDGE, exit=(1, 0.5), entry=(0, 0.5))
+b.edge("mf", "m2x", "m3", "", EDGE, exit=(1, 0.5), entry=(0, 0.5))
+b.edge("mg", "m2", "m4", "a rule fires", EDGE_ACC, exit=(0.5, 1), entry=(0.5, 0))
+b.edge("mh", "m4", "m5", "", EDGE_ACC, exit=(0.5, 1), entry=(0.5, 0))
+b.edge("mi", "m5", "m6", "surfaced on Decisions", EDGE, exit=(0.5, 1), entry=(0.5, 0))
+b.edge("mj", "m6", "m7", "", EDGE_ACC, exit=(1, 0.5), entry=(0, 0.5))
+b.edge("mk", "m6", "m8", "", EDGE_STOP, exit=(0.5, 1), entry=(0, 0.5))
+b.edge("ml", "m7", "m3", "resumes the same run", EDGE_ACC, exit=(0.5, 0), entry=(0.5, 1))
+
+# -- the duty ----------------------------------------------------------------
+# PRESS is not reachable by an edge from the tool call, and that is the point: it
+# runs whether or not the agent is doing anything. Drawing an arrow into it from
+# the middle column would say the opposite.
+b.node("p1", "PRESS loop\nruns on a schedule, not on a tool call", 1980, 165, 380, 85,
+       ACC)
+b.node("p2", "policy.sweep.sweep()\nover every open appeal", 1980, 285, 380, 70)
+b.node("p3", "deadline_at_risk\nyour window is closing", 1980, 385, 380, 70)
+b.node("p4", "insurer_overdue\nthe plan is late answering you", 1980, 475, 380, 70)
+b.node("p5", "unreadable\nrefuses that one appeal in words you can\nact on, and carries "
+             "on with the rest of the file", 1980, 565, 380, 95)
+b.edge("pa", "p1", "p2", "", EDGE_ACC, exit=(0.5, 1), entry=(0.5, 0))
+b.edge("pb", "p2", "p3", "", EDGE, exit=(0.5, 1), entry=(0.5, 0))
+b.edge("pc", "p3", "p4", "", EDGE, exit=(0.5, 1), entry=(0.5, 0))
+b.edge("pd", "p4", "p5", "", EDGE, exit=(0.5, 1), entry=(0.5, 0))
+
+b.node("n1", "These three fire at every autonomy level, the most permissive included. "
+             "Every other rule waits to be provoked by a tool call; this one fires "
+             "because the agent is about to do nothing. A background agent that only "
+             "spoke when provoked would go quiet through six months of a 180-day "
+             "window and be right about everything except the thing that mattered.",
+       1980, 700, 380, 130, NOTE)
+b.node("n2", "Nothing is committed before the pause. A held decision leaves the journal "
+             "empty for that step — it stopped before it did anything, not after.",
+       1980, 850, 380, 80, NOTE)
+b.node("n3", "Strands Agents on Amazon Bedrock. The model reasons; it never does the "
+             "arithmetic. Every clock is a pure function over a notice date, a plan's "
+             "rules and a stage.", 1980, 950, 380, 90, NOTE)
+
 XML = ('<mxfile host="app.diagrams.net" type="device">\n' + a.xml("how-it-works")
-       + '</mxfile>\n')
+       + b.xml("under-the-hood") + '</mxfile>\n')
 OUT.write_text(XML, encoding="utf-8")
 print(f"wrote {OUT}  ({len(a.cells)} cells)")
