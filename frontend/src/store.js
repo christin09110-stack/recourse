@@ -19,8 +19,9 @@ function emptyWorld() {
 }
 
 export const useStore = create((set, get) => ({
-  // Deadlines is the screen that carries the product, so it is what opens.
-  route: 'deadlines',
+  // Overview is the landing: the whole case in six cards, each one a live
+  // figure and a door into the screen it counts.
+  route: 'overview',
   go: (route) => set({ route }),
 
   loading: true,
@@ -190,7 +191,7 @@ export const useStore = create((set, get) => ({
       await api.resetDemo()
       set({ eob: null })
       await get().refresh({ quiet: true })
-      set({ route: 'deadlines' })
+      set({ route: 'overview' })
       get().notify('The world is back to how it started.', 'good')
     } catch (err) {
       get().notify(err?.message || 'Could not reset the world', 'bad')

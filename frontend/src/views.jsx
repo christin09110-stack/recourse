@@ -16,6 +16,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useStore } from './store.js'
 import { journalCsvUrl } from './api.js'
 import Modal from './components/Modal.jsx'
+import Icon, { DenialAndClock } from './components/Icon.jsx'
 import {
   fmtDate, fmtLongDate, fmtDateTime, money, sentenceCase,
   evidenceLabel, RISK_LABEL, STAGE_LABEL, CLASS_LABEL,
@@ -99,13 +100,176 @@ function Detail({ value }) {
   return <span className="detail-value">{String(value)}</span>
 }
 
-function TriageButton({ className = 'btn btn-accent' }) {
+function TriageButton({ className = 'btn btn-brand' }) {
   const triage = useStore((s) => s.triage)
   const busy = useStore((s) => s.busy.triage)
   return (
     <button type="button" className={className} disabled={busy} onClick={() => triage()}>
       {busy ? 'Triaging…' : 'Triage the case file'}
     </button>
+  )
+}
+
+/* ── Overview ──────────────────────────────────────────────────────────── */
+
+// The landing. Six cards, one per screen, and every figure on them is counted
+// off a response the API already returned — the console classifies nothing and
+// computes no date to fill one in. Grouping the API's own risk values into "at
+// risk" is a count, not a second opinion about which clock matters.
+const AT_RISK = new Set(['approaching', 'critical', 'missed'])
+
+function Tile({ icon, title, value, unit, tone, body, onClick }) {
+  return (
+    <button type="button" className="tile" onClick={onClick}>
+      <span className="tile-icon"><Icon name={icon} size={24} /></span>
+      <span className="tile-title">{title}</span>
+      <span className={`tile-figure${tone ? ` tone-${tone}` : ''}`}>
+        <span className="tile-value">{value}</span>
+        <span className="tile-unit">{unit}</span>
+      </span>
+      <span className="tile-body">{body}</span>
+      <span className="tile-arrow" aria-hidden="true"><Icon name="arrow" size={20} /></span>
+    </button>
+  )
+}
+
+function plural(n, one, many) {
+  return n === 1 ? one : many
+}
+
+export function OverviewScreen() {
+  const go = useStore((s) => s.go)
+  const world = useStore((s) => s.world)
+  const caseFile = useStore((s) => s.caseFile)
+  const denials = useStore((s) => s.denials)
+  const deadlines = useStore((s) => s.deadlines)
+  const appeals = useStore((s) => s.appeals)
+  const decisions = useStore((s) => s.decisions)
+  const journal = useStore((s) => s.journal)
+
+  const claims = caseFile.claims || []
+  const documents = caseFile.documents || []
+  const plans = world.plans || []
+
+  const atRisk = deadlines.filter((f) => AT_RISK.has(f.risk))
+  const missed = deadlines.filter((f) => f.risk === 'missed')
+  const overdue = deadlines.filter((f) => f.insurer_overdue)
+  // A missed window has no "days left", and an unassessable one has no figure
+  // at all. Neither is folded into a nearest-deadline number.
+  const running = deadlines.filter(
+    (f) => f.risk !== 'missed' && typeof f.days_remaining === 'number',
+  )
+  const nearest = running.length
+    ? running.reduce((a, b) => (b.days_remaining < a.days_remaining ? b : a))
+    : null
+
+  const alone = denials.filter((d) => d.can_prepare_alone)
+  const clinical = denials.filter((d) => d.denial_class === 'clinical')
+
+  const drafted = appeals.reduce((n, appeal) => {
+    const levels = [...(appeal.history || []), ...(appeal.levels || [])]
+    return n + levels.filter((l) => l.letter_body).length
+  }, 0)
+
+  const flagged = claims.reduce(
+    (n, claim) => n + claim.lines.filter((l) => l.needs_review).length, 0,
+  )
+
+  return (
+    <>
+      {/* Where the reference portal puts a photograph. There is no photograph
+          here and no drawing of a person: the subject of this product is a
+          denial letter and a clock, and that is what is drawn. */}
+      <section className="status-strip">
+        <div className="strip-words">
+          <h1 className="strip-title">The case, so far</h1>
+          <p className="strip-line">
+            The Okafor&ndash;Reyes household, <span className="mono">{caseFile.case_id || world.case_id || '—'}</span>
+            {' — '}{claims.length} {plural(claims.length, 'claim', 'claims')} across{' '}
+            {plans.length} {plural(plans.length, 'plan', 'plans')},{' '}
+            {denials.length} denied {plural(denials.length, 'line', 'lines')}, and{' '}
+            {nearest
+              ? `the nearest appeal deadline is ${nearest.days_remaining} ${plural(nearest.days_remaining, 'day', 'days')} away.`
+              : 'no appeal clock running yet.'}
+          </p>
+          <p className="strip-note">
+            Counted from {fmtLongDate(world.now) || 'the world clock'}
+            {overdue.length > 0 && `, and ${overdue.length} ${plural(overdue.length, 'plan is', 'plans are')} past ${plural(overdue.length, 'its', 'their')} own deadline to answer`}.
+          </p>
+          <div className="strip-actions">
+            <TriageButton className="btn btn-brand btn-pill" />
+          </div>
+        </div>
+        <DenialAndClock />
+      </section>
+
+      <div className="tile-grid">
+        <Tile
+          icon="deadlines"
+          title="Deadlines"
+          value={nearest ? nearest.days_remaining : '—'}
+          unit={nearest
+            ? `${plural(nearest.days_remaining, 'day', 'days')} to the nearest deadline`
+            : 'no clock running'}
+          tone={nearest ? nearest.risk : null}
+          body={deadlines.length === 0
+            ? 'No appeal is open yet.'
+            : `${atRisk.length} of ${deadlines.length} open ${plural(deadlines.length, 'appeal', 'appeals')} ${plural(atRisk.length, 'is', 'are')} at risk${missed.length ? `, and ${missed.length} ${plural(missed.length, 'window has', 'windows have')} closed` : ''}.`}
+          onClick={() => go('deadlines')}
+        />
+
+        <Tile
+          icon="denials"
+          title="Denials"
+          value={denials.length}
+          unit={`${plural(denials.length, 'denial', 'denials')} on file`}
+          body={denials.length === 0
+            ? 'Nothing has been classified yet.'
+            : `Recourse can prepare ${alone.length} of them on its own${clinical.length ? `; ${clinical.length} ${plural(clinical.length, 'is', 'are')} your doctor’s to argue` : ''}.`}
+          onClick={() => go('denials')}
+        />
+
+        <Tile
+          icon="letters"
+          title="Letters"
+          value={drafted}
+          unit={`${plural(drafted, 'letter', 'letters')} drafted`}
+          body={drafted === 0
+            ? 'Nothing drafted yet. Triage the case file and Recourse writes the appeals the evidence already supports.'
+            : 'Every assertion in them is shown with the document it cites.'}
+          onClick={() => go('letters')}
+        />
+
+        <Tile
+          icon="decisions"
+          title="Decisions"
+          value={decisions.length}
+          unit={`${plural(decisions.length, 'question', 'questions')} waiting for a person`}
+          body={decisions.length === 0
+            ? 'Nothing is waiting on you.'
+            : 'Recourse stopped and asked. Nothing moves on those appeals until you answer.'}
+          onClick={() => go('decisions')}
+        />
+
+        <Tile
+          icon="case"
+          title="Case file"
+          value={claims.length}
+          unit={`${plural(claims.length, 'claim', 'claims')} on file`}
+          body={`${documents.length} ${plural(documents.length, 'document', 'documents')} behind them${flagged ? `, and ${flagged} ${plural(flagged, 'line needs', 'lines need')} a person to check ${plural(flagged, 'it', 'them')}` : ''}.`}
+          onClick={() => go('case')}
+        />
+
+        <Tile
+          icon="journal"
+          title="Journal"
+          value={journal.length}
+          unit={`${plural(journal.length, 'entry', 'entries')} recorded`}
+          body="Written as things happened, in the order they happened. Append-only."
+          onClick={() => go('journal')}
+        />
+      </div>
+    </>
   )
 }
 
@@ -215,7 +379,7 @@ function EobModal({ open, onClose }) {
           <button type="button" className="btn btn-ghost" onClick={onClose}>Close</button>
           <button
             type="button"
-            className="btn btn-accent"
+            className="btn btn-brand"
             disabled={!file || busy}
             onClick={async () => {
               await uploadEob(file)
@@ -440,7 +604,7 @@ function DeadlineCard({ finding }) {
             <span className="clock-date">{fmtLongDate(d.mine) || 'not assessable'}</span>
             <span className="clock-note">{STAGE_LABEL[d.stage] || sentenceCase(d.stage)}</span>
           </div>
-          <div className={`clock-col${finding.insurer_overdue ? ' clock-col-late' : ''}`}>
+          <div className={`clock-col clock-theirs${finding.insurer_overdue ? ' clock-col-late' : ''}`}>
             <span className="clock-whose">The plan&rsquo;s clock</span>
             <span className="clock-date">{fmtLongDate(d.theirs) || 'not yet running'}</span>
             <span className="clock-note">
@@ -484,7 +648,7 @@ export function DeadlinesScreen() {
         title="Deadlines"
         lede={`Every open appeal, worst first, counted from ${fmtLongDate(world.now)}. Warning at ${autonomy?.thresholds?.warn_days ?? '—'} days, which is what the autonomy dial moves.`}
         actions={
-          <button type="button" className="btn btn-accent" disabled={busy} onClick={() => press()}>
+          <button type="button" className="btn btn-brand" disabled={busy} onClick={() => press()}>
             {busy ? 'Sweeping…' : 'Sweep the clocks'}
           </button>
         }
@@ -856,7 +1020,7 @@ function DecisionCard({ decision }) {
           </button>
           <button
             type="button"
-            className="btn btn-accent"
+            className="btn btn-brand"
             disabled={busy || !by.trim()}
             onClick={() => answer(decision.decision_id, 'approve', { by, role, note })}
           >
