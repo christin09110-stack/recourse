@@ -1165,7 +1165,7 @@ const RULE_COPY = {
   deadline_at_risk: {
     title: 'It will not let a deadline pass in silence.',
     body: 'This one is a duty rather than a prohibition: it fires because the agent must act, not because it must not. An unanswered deadline escalation gets louder rather than going quiet. Fewer than one denied claim in a hundred is ever appealed, and the reason is not that people accept the decision — it is that nobody told them the clock was running.',
-    statute: '29 CFR 2560.503-1(h)(2)(i) — 180 days to request a review',
+    statute: '29 CFR 2560.503-1(h)(3)(i) — at least 180 days to request a review',
     href: 'https://www.govinfo.gov/content/pkg/CFR-2023-title29-vol9/xml/CFR-2023-title29-vol9-sec2560-503-1.xml',
   },
 }
